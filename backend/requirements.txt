@@ -35,6 +35,7 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
 # Utilities
+aiofiles>=23.0.0
 python-dotenv==1.0.1
 httpx==0.26.0
 tenacity==8.2.3
