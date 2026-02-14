@@ -299,7 +299,7 @@ export function DivergenceReveal({ pollId, companyName, data: dataProp }: Diverg
 
           {showVotes && (
             <div className="border-t border-zinc-800 divide-y divide-zinc-800">
-              {data.votes
+              {(data.votes ?? [])
                 .sort((a, b) => b.conviction_score - a.conviction_score)
                 .map((vote) => (
                   <div
@@ -328,7 +328,7 @@ export function DivergenceReveal({ pollId, companyName, data: dataProp }: Diverg
                         {vote.user_name}
                       </div>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {vote.green_flags.slice(0, 2).map((flag) => (
+                        {(vote.green_flags ?? []).slice(0, 2).map((flag) => (
                           <span
                             key={flag}
                             className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded"
@@ -336,7 +336,7 @@ export function DivergenceReveal({ pollId, companyName, data: dataProp }: Diverg
                             {flag}
                           </span>
                         ))}
-                        {vote.red_flags.slice(0, 2).map((flag) => (
+                        {(vote.red_flags ?? []).slice(0, 2).map((flag) => (
                           <span
                             key={flag}
                             className="text-xs bg-red-500/10 text-red-400 px-2 py-0.5 rounded"

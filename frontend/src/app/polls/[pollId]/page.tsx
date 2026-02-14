@@ -21,7 +21,7 @@ export default function PollPage() {
     is_active: boolean;
     is_revealed: boolean;
     reveal_threshold: number;
-    total_votes?: number;
+    total_votes: number;
   } | null>(null);
   const [divergenceData, setDivergenceData] = useState<DivergenceViewData | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
@@ -35,7 +35,8 @@ export default function PollPage() {
         const p = await api.getPoll(pollId);
         setPoll({
           ...p,
-          company_name: p.company_name || "Deal",
+          company_name: (p as { company_name?: string }).company_name || p.title || "Deal",
+          total_votes: p.vote_count ?? 0,
         });
         if (p.is_revealed) {
           const dv = await api.getDivergenceView(pollId);
@@ -52,6 +53,7 @@ export default function PollPage() {
           is_active: true,
           is_revealed: false,
           reveal_threshold: 3,
+          total_votes: 0,
         });
       } finally {
         setLoading(false);
