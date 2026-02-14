@@ -1,0 +1,23 @@
+# Frontend - not needed for backend
+frontend/
+node_modules/
+
+# Git and IDE
+.git
+.gitignore
+.vercel
+*.md
+.cursor
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+venv/
+*.egg-info/
+
+# Scripts and tests
+scripts/
+*.log
