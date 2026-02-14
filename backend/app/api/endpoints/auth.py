@@ -2,7 +2,7 @@
 
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +14,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class LoginRequest(BaseModel):
-    email: str
+    # Use alias to avoid Pydantic/FastAPI email-validator inference for field name "email"
+    login_email: str = Field(..., alias="email")
     password: str
 
 
@@ -42,7 +43,7 @@ async def login(
 ):
     """Sign in with email and password. Returns JWT and user info."""
     result = await db.execute(
-        select(User).where(func.lower(User.email) == data.email.lower(), User.is_active == True)
+        select(User).where(func.lower(User.email) == data.login_email.lower(), User.is_active == True)
     )
     user = result.scalar_one_or_none()
     if not user:

@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Install email-validator first (required by Pydantic EmailStr/HttpUrl)
+RUN pip install --no-cache-dir email-validator>=2.0.0
+
 # Copy and install Python dependencies (retries for flaky networks)
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --retries 5 --timeout 300 -r requirements.txt
