@@ -60,9 +60,23 @@ async def get_poll(
     current_user: dict = Depends(get_current_user),
 ):
     """Get poll details."""
-    poll = await db.get(ConvictionPoll, poll_id)
-    if not poll or poll.firm_id != current_user["firm_id"]:
+    from sqlalchemy.orm import selectinload
+    from sqlalchemy import func
+    from app.models.polling import PollVote
+
+    result = await db.execute(
+        select(ConvictionPoll)
+        .options(selectinload(ConvictionPoll.deal))
+        .where(ConvictionPoll.id == poll_id, ConvictionPoll.firm_id == current_user["firm_id"])
+    )
+    poll = result.scalar_one_or_none()
+    if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
+
+    vote_count_result = await db.execute(
+        select(func.count(PollVote.id)).where(PollVote.poll_id == poll_id)
+    )
+    vote_count = vote_count_result.scalar() or 0
 
     return ConvictionPollResponse(
         id=poll.id,
@@ -77,6 +91,8 @@ async def get_poll(
         closes_at=poll.closes_at,
         ic_meeting_date=poll.ic_meeting_date,
         created_at=poll.created_at,
+        vote_count=vote_count,
+        company_name=poll.deal.company_name if poll.deal else "Deal",
         average_score=poll.average_score if poll.is_revealed else None,
         divergence_score=poll.divergence_score if poll.is_revealed else None,
     )

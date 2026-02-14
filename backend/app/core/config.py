@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # Anthropic
     ANTHROPIC_API_KEY: str = ""
-    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20241022"
+    ANTHROPIC_MODEL: str = "claude-sonnet-4-5-20250929"
 
     # Vector Store
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"

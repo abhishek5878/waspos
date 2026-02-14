@@ -41,10 +41,8 @@ class VectorStore:
 
     async def _set_rls_context(self) -> None:
         """Set the RLS context for the current session."""
-        await self.db.execute(
-            text("SET app.current_firm_id = :firm_id"),
-            {"firm_id": str(self.firm_id)}
-        )
+        # SET does not accept bind params; UUID is safe to interpolate
+        await self.db.execute(text(f"SET app.current_firm_id = '{self.firm_id}'"))
 
     async def add_chunks(
         self,
@@ -72,7 +70,7 @@ class VectorStore:
                 page_number=chunk.get("page_number"),
                 section_type=chunk.get("section_type"),
                 embedding=embedding,
-                metadata=chunk.get("metadata"),
+                chunk_metadata=chunk.get("metadata"),
             )
             chunk_records.append(chunk_record)
             self.db.add(chunk_record)
@@ -123,15 +121,15 @@ class VectorStore:
                 dc.section_type,
                 d.original_filename as document_title,
                 d.deal_id,
-                1 - (dc.embedding <=> :query_vector::vector) as similarity
+                1 - (dc.embedding <=> :query_vector\:\:vector) as similarity
             FROM document_chunks dc
             JOIN documents d ON dc.document_id = d.id
             WHERE dc.firm_id = :firm_id  -- Primary security filter
             AND d.firm_id = :firm_id      -- Double-check on joined table
             {doc_filter}
             {type_filter}
-            AND 1 - (dc.embedding <=> :query_vector::vector) >= :min_similarity
-            ORDER BY dc.embedding <=> :query_vector::vector
+            AND 1 - (dc.embedding <=> :query_vector\:\:vector) >= :min_similarity
+            ORDER BY dc.embedding <=> :query_vector\:\:vector
             LIMIT :limit
         """.format(
             doc_filter="AND dc.document_id = :document_id" if document_id else "",
@@ -202,7 +200,7 @@ class VectorStore:
         result = await self.db.execute(
             text("""
                 SELECT * FROM secure_vector_search(
-                    :query_vector::vector,
+                    :query_vector\:\:vector,
                     :threshold,
                     :limit
                 )
@@ -281,12 +279,12 @@ class VectorStore:
                 dc.content,
                 d.original_filename as document_title,
                 d.extracted_company as company_name,
-                1 - (dc.embedding <=> :query_vector::vector) as similarity
+                1 - (dc.embedding <=> :query_vector\:\:vector) as similarity
             FROM document_chunks dc
             JOIN documents d ON dc.document_id = d.id
             WHERE dc.firm_id = :firm_id
             AND d.firm_id = :firm_id
-            AND d.document_type = 'ic_memo'
+            AND d.document_type::text = 'ic_memo'
             AND (
                 LOWER(dc.content) LIKE '%pass%'
                 OR LOWER(dc.content) LIKE '%concern%'
@@ -295,8 +293,8 @@ class VectorStore:
                 OR LOWER(dc.content) LIKE '%decline%'
                 OR LOWER(dc.content) LIKE '%red flag%'
             )
-            AND 1 - (dc.embedding <=> :query_vector::vector) >= 0.5
-            ORDER BY dc.embedding <=> :query_vector::vector
+            AND 1 - (dc.embedding <=> :query_vector\:\:vector) >= 0.5
+            ORDER BY dc.embedding <=> :query_vector\:\:vector
             LIMIT :limit
         """)
 

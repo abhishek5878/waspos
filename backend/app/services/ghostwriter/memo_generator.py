@@ -76,10 +76,12 @@ Write the following sections:
 9. **Investment Thesis** (Why we should invest)
 10. **Key Risks** (What could go wrong)
 11. **Deal Terms Assessment**
-12. **Why This Might Be a Ghost Loss** (CRITICAL: Based on the historical pass reasons provided above, write a brutally honest counter-thesis. What patterns from our past "passes" might we be repeating? What cognitive biases might be at play? If we pass on this deal and it becomes a breakout success, what will we wish we had seen?)
-13. **Recommendation** (Proceed/Pass with reasoning - must acknowledge the Ghost Loss analysis)
+12. **Friction Report** (CRITICAL: For each historical pass reason above, specifically identify WHERE this deal contradicts or triggers our past logic. Use bullet points: "• [Historical pattern X]: This deal [contradicts/aligns with] because...")
+13. **Why This Might Be a Ghost Loss** (Counter-thesis: What patterns from our past "passes" might we be repeating? What cognitive biases might be at play?)
+14. **Why the GP Should Ignore Their Own Previous Bias Here** (CRITICAL: A specific section arguing why each historical bias (academic founders, market size, valuation) may NOT apply to this deal. Be concrete. What is different about this team, market, or terms?)
+15. **Recommendation** (Proceed/Pass with reasoning - must acknowledge the Ghost Loss analysis)
 
-Format each section with a clear header. Be direct and analytical. The Ghost Loss section should be uncomfortable to read—that's the point.
+Format each section with a clear header. Be direct and analytical. The Friction Report and GP bias section should challenge groupthink.
 """
 
 
@@ -266,7 +268,9 @@ YOUR TASK: Write a "Why This Might Be a Ghost Loss" section that HONESTLY confro
             "investment_thesis": None,
             "key_risks": None,
             "deal_terms": None,
+            "friction_report": None,
             "ghost_loss_analysis": None,
+            "gp_bias_ignore_reasoning": None,
             "recommendation": None,
         }
 
@@ -282,7 +286,9 @@ YOUR TASK: Write a "Why This Might Be a Ghost Loss" section that HONESTLY confro
             "investment_thesis": ["Investment Thesis"],
             "key_risks": ["Key Risks", "Risks"],
             "deal_terms": ["Deal Terms", "Terms Assessment"],
+            "friction_report": ["Friction Report"],
             "ghost_loss_analysis": ["Why This Might Be a Ghost Loss", "Ghost Loss", "Counter-Thesis"],
+            "gp_bias_ignore_reasoning": ["Why the GP Should Ignore", "GP Should Ignore", "Previous Bias"],
             "recommendation": ["Recommendation"],
         }
 

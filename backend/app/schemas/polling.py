@@ -64,6 +64,7 @@ class ConvictionPollResponse(BaseModel):
     closes_at: Optional[datetime] = None
     ic_meeting_date: Optional[datetime] = None
     vote_count: int = 0
+    company_name: Optional[str] = None
     created_at: datetime
 
     # Only populated if is_revealed or requester is lead partner

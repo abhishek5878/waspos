@@ -7,6 +7,7 @@ filtered to only return data from the current user's firm.
 """
 
 from contextlib import asynccontextmanager
+from typing import Optional
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
@@ -18,7 +19,7 @@ logger = structlog.get_logger()
 async def set_firm_context(
     db: AsyncSession,
     firm_id: UUID,
-    user_id: UUID | None = None,
+    user_id: Optional[UUID] = None,
 ) -> None:
     """
     Set the current firm and user context for RLS policies.
@@ -31,16 +32,10 @@ async def set_firm_context(
         firm_id: The UUID of the current firm
         user_id: The UUID of the current user (optional)
     """
-    await db.execute(
-        text("SET app.current_firm_id = :firm_id"),
-        {"firm_id": str(firm_id)}
-    )
-
+    # SET does not accept bind params; UUIDs are safe to interpolate
+    await db.execute(text(f"SET app.current_firm_id = '{firm_id}'"))
     if user_id:
-        await db.execute(
-            text("SET app.current_user_id = :user_id"),
-            {"user_id": str(user_id)}
-        )
+        await db.execute(text(f"SET app.current_user_id = '{user_id}'"))
 
     logger.debug("rls_context_set", firm_id=str(firm_id), user_id=str(user_id) if user_id else None)
 
@@ -57,7 +52,7 @@ async def clear_firm_context(db: AsyncSession) -> None:
 async def firm_context(
     db: AsyncSession,
     firm_id: UUID,
-    user_id: UUID | None = None,
+    user_id: Optional[UUID] = None,
 ):
     """
     Context manager to automatically set and clear firm context.
@@ -158,7 +153,7 @@ async def secure_vector_search(
     result = await db.execute(
         text("""
             SELECT * FROM secure_vector_search(
-                :query_vector::vector,
+                :query_vector\:\:vector,
                 :threshold,
                 :limit
             )

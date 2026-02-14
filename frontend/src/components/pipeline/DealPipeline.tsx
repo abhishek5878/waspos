@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { DealStage, Deal } from "@/types";
 import { DealCard } from "./DealCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Filter, SortAsc } from "lucide-react";
+import { useDeals } from "@/hooks/useDeals";
 
 const PIPELINE_STAGES: { key: DealStage; label: string; color: string }[] = [
   { key: "inbound", label: "Inbound", color: "bg-slate-500" },
@@ -16,92 +16,49 @@ const PIPELINE_STAGES: { key: DealStage; label: string; color: string }[] = [
   { key: "term_sheet", label: "Term Sheet", color: "bg-emerald-500" },
 ];
 
-// Mock data for demonstration
-const MOCK_DEALS: Deal[] = [
-  {
-    id: "1",
-    firm_id: "firm-1",
-    company_name: "TechStartup AI",
-    one_liner: "AI-powered customer service automation",
-    stage: "ic_review",
-    source: "referral",
-    sector: "AI/ML",
-    asking_valuation: 25000000,
-    round_size: 5000000,
-    created_at: "2024-01-15",
-    updated_at: "2024-02-01",
-  },
-  {
-    id: "2",
-    firm_id: "firm-1",
-    company_name: "FinanceFlow",
-    one_liner: "B2B payments infrastructure for emerging markets",
-    stage: "deep_dive",
-    source: "outbound",
-    sector: "Fintech",
-    asking_valuation: 40000000,
-    round_size: 8000000,
-    created_at: "2024-01-20",
-    updated_at: "2024-02-05",
-  },
-  {
-    id: "3",
-    firm_id: "firm-1",
-    company_name: "GreenEnergy Co",
-    one_liner: "Solar panel optimization using ML",
-    stage: "first_meeting",
-    source: "inbound",
-    sector: "CleanTech",
-    asking_valuation: 15000000,
-    round_size: 3000000,
-    created_at: "2024-02-01",
-    updated_at: "2024-02-10",
-  },
-  {
-    id: "4",
-    firm_id: "firm-1",
-    company_name: "HealthBridge",
-    one_liner: "Telemedicine platform for rural areas",
-    stage: "screening",
-    source: "portfolio_intro",
-    sector: "HealthTech",
-    asking_valuation: 20000000,
-    round_size: 4000000,
-    created_at: "2024-02-05",
-    updated_at: "2024-02-12",
-  },
-  {
-    id: "5",
-    firm_id: "firm-1",
-    company_name: "DataMesh",
-    one_liner: "Decentralized data marketplace",
-    stage: "inbound",
-    source: "inbound",
-    sector: "Data/Infrastructure",
-    created_at: "2024-02-10",
-    updated_at: "2024-02-14",
-  },
-  {
-    id: "6",
-    firm_id: "firm-1",
-    company_name: "CyberShield",
-    one_liner: "Zero-trust security for SMBs",
-    stage: "term_sheet",
-    source: "referral",
-    sector: "Cybersecurity",
-    asking_valuation: 50000000,
-    round_size: 10000000,
-    proposed_check: 3000000,
-    created_at: "2024-01-05",
-    updated_at: "2024-02-08",
-  },
-];
+function formatDealForCard(d: any): Deal {
+  return {
+    id: d.id,
+    firm_id: d.firm_id,
+    lead_partner_id: d.lead_partner_id,
+    company_name: d.company_name,
+    website: d.website,
+    description: d.description,
+    one_liner: d.one_liner,
+    stage: d.stage,
+    source: d.source,
+    sector: d.sector,
+    sub_sector: d.sub_sector,
+    asking_valuation: d.asking_valuation != null ? Number(d.asking_valuation) : undefined,
+    proposed_check: d.proposed_check != null ? Number(d.proposed_check) : undefined,
+    round_size: d.round_size != null ? Number(d.round_size) : undefined,
+    created_at: d.created_at,
+    updated_at: d.updated_at,
+  };
+}
 
 export function DealPipeline() {
-  const [deals] = useState<Deal[]>(MOCK_DEALS);
+  const { data, isLoading, error } = useDeals({ per_page: 200 });
+  const deals = (data?.deals ?? []).map(formatDealForCard);
 
   const getDealsByStage = (stage: DealStage) =>
     deals.filter((deal) => deal.stage === stage);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-wasp-gold border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-destructive">Failed to load deals. Please try again.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">

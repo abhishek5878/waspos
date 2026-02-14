@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from app.core.config import settings
+from app.db.pgbouncer import get_pgbouncer_connect_args
 from app.models.document import Document, DocumentType
 from app.services.memory.pdf_parser import PDFParser
 from app.services.memory.vector_store import VectorStore
@@ -38,8 +39,8 @@ async def index_folder(firm_id: UUID, folder_path: str, db_url: str):
 
     print(f"Found {len(pdf_files)} PDF files to index")
 
-    # Create database connection
-    engine = create_async_engine(db_url)
+    # Create database connection (pgbouncer-safe for Supabase transaction pool mode)
+    engine = create_async_engine(db_url, connect_args=get_pgbouncer_connect_args())
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     parser = PDFParser()

@@ -15,9 +15,34 @@ import {
   ChevronUp,
 } from "lucide-react";
 
+export interface DivergenceViewData {
+  poll_id: string;
+  deal_id: string;
+  company_name: string;
+  total_votes: number;
+  average_score: number;
+  min_score: number;
+  max_score: number;
+  divergence: number;
+  std_deviation: number;
+  score_distribution: Record<number, number>;
+  top_red_flags: { flag: string; count: number }[];
+  top_green_flags: { flag: string; count: number }[];
+  has_consensus: boolean;
+  needs_discussion: boolean;
+  votes?: {
+    id: string;
+    conviction_score: number;
+    user_name?: string;
+    red_flags?: string[];
+    green_flags?: string[];
+  }[];
+}
+
 interface DivergenceRevealProps {
   pollId: string;
   companyName: string;
+  data?: DivergenceViewData | null;
 }
 
 // Mock divergence data - replace with API call
@@ -55,10 +80,14 @@ const MOCK_DIVERGENCE = {
   ],
 };
 
-export function DivergenceReveal({ pollId, companyName }: DivergenceRevealProps) {
-  const [data] = useState(MOCK_DIVERGENCE);
+export function DivergenceReveal({ pollId, companyName, data: dataProp }: DivergenceRevealProps) {
+  const [data, setData] = useState<DivergenceViewData>(dataProp || MOCK_DIVERGENCE);
   const [showVotes, setShowVotes] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
+
+  useEffect(() => {
+    if (dataProp) setData(dataProp);
+  }, [dataProp]);
 
   useEffect(() => {
     // Staggered reveal animation
@@ -69,6 +98,8 @@ export function DivergenceReveal({ pollId, companyName }: DivergenceRevealProps)
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
+
+  const isHighRiskPass = data.divergence >= 5 && data.min_score <= 4;
 
   const getDivergenceStatus = () => {
     if (data.divergence <= 2) {
@@ -82,7 +113,7 @@ export function DivergenceReveal({ pollId, companyName }: DivergenceRevealProps)
     }
     if (data.divergence >= 5) {
       return {
-        label: "High Divergence",
+        label: isHighRiskPass ? "High-Risk Pass" : "High Divergence",
         color: "text-amber-400",
         bgColor: "bg-amber-500/10",
         borderColor: "border-amber-500/30",
@@ -331,11 +362,12 @@ export function DivergenceReveal({ pollId, companyName }: DivergenceRevealProps)
           >
             <MessageSquare className="w-8 h-8 text-amber-400 mx-auto mb-3" />
             <h3 className="text-lg font-medium text-amber-300 mb-2">
-              This deal needs discussion
+              {isHighRiskPass ? "High-Risk Pass scenario" : "This deal needs discussion"}
             </h3>
             <p className="text-sm text-amber-200/70">
-              A {data.divergence}-point spread suggests significantly different
-              reads on this opportunity. Schedule time to explore the divergence.
+              {isHighRiskPass
+                ? `A ${data.divergence}-point spread with the lead partner at ${data.min_score}/10 suggests we may pass on a deal the rest of the team believes in. Schedule time to explore the divergence before deciding.`
+                : `A ${data.divergence}-point spread suggests significantly different reads on this opportunity. Schedule time to explore the divergence.`}
             </p>
           </motion.div>
         )}

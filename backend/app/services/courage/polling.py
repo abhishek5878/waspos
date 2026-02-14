@@ -135,7 +135,7 @@ class PollingService:
 
         if votes:
             scores = [v.conviction_score for v in votes]
-            poll.average_score = sum(scores) // len(scores)
+            poll.average_score = int(round(sum(scores) / len(scores)))
             poll.divergence_score = max(scores) - min(scores)
 
         await self.db.flush()

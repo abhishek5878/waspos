@@ -10,7 +10,7 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  setToken(token: string) {
+  setToken(token: string | null) {
     this.token = token;
   }
 

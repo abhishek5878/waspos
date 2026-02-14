@@ -78,9 +78,9 @@ class DocumentChunk(Base):
     # Vector embedding (pgvector)
     embedding = Column(Vector(settings.EMBEDDING_DIMENSION), nullable=True)
 
-    # Metadata
+    # Extra chunk metadata (column named chunk_metadata to avoid SQLAlchemy reserved "metadata")
     section_type = Column(String(100), nullable=True)  # "team", "market", "traction"
-    metadata = Column(JSONB, nullable=True)
+    chunk_metadata = Column(JSONB, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import structlog
 
 from app.core.config import settings
-from app.api.endpoints import deals, documents, ghostwriter, polling
+from app.api.endpoints import auth, deals, documents, ghostwriter, polling
 
 # Configure structured logging
 structlog.configure(
@@ -48,6 +48,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(deals.router, prefix=settings.API_V1_PREFIX)
 app.include_router(documents.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ghostwriter.router, prefix=settings.API_V1_PREFIX)

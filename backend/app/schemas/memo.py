@@ -81,7 +81,9 @@ class InvestmentMemoResponse(BaseModel):
     investment_thesis: Optional[str] = None
     key_risks: Optional[str] = None
     deal_terms: Optional[str] = None
+    friction_report: Optional[str] = None
     ghost_loss_analysis: Optional[str] = None  # "Why This Might Be a Ghost Loss"
+    gp_bias_ignore_reasoning: Optional[str] = None  # "Why the GP should ignore previous bias"
     recommendation: Optional[str] = None
 
     # AI metadata

@@ -1,17 +1,19 @@
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import text
 
 from app.core.config import settings
+from app.db.pgbouncer import get_pgbouncer_connect_args
 
-# Create async engine
+# Create async engine (pgbouncer-safe for Supabase transaction pool mode)
 engine = create_async_engine(
     settings.DATABASE_URL,
     pool_size=settings.DATABASE_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_OVERFLOW,
     echo=settings.DEBUG,
+    connect_args=get_pgbouncer_connect_args(),
 )
 
 # Create async session factory
@@ -42,7 +44,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def get_db_with_rls(
     firm_id: UUID,
-    user_id: UUID | None = None,
+    user_id: Optional[UUID] = None,
 ) -> AsyncGenerator[AsyncSession, None]:
     """
     Get a database session with RLS context set.
@@ -52,16 +54,10 @@ async def get_db_with_rls(
     """
     async with async_session_maker() as session:
         try:
-            # Set RLS context
-            await session.execute(
-                text("SET app.current_firm_id = :firm_id"),
-                {"firm_id": str(firm_id)}
-            )
+            # Set RLS context (SET does not accept bind params; UUIDs are safe to interpolate)
+            await session.execute(text(f"SET app.current_firm_id = '{firm_id}'"))
             if user_id:
-                await session.execute(
-                    text("SET app.current_user_id = :user_id"),
-                    {"user_id": str(user_id)}
-                )
+                await session.execute(text(f"SET app.current_user_id = '{user_id}'"))
 
             yield session
             await session.commit()

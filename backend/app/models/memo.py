@@ -43,7 +43,9 @@ class InvestmentMemo(Base):
     investment_thesis = Column(Text, nullable=True)
     key_risks = Column(Text, nullable=True)
     deal_terms = Column(Text, nullable=True)
+    friction_report = Column(Text, nullable=True)  # Where deal contradicts past logic
     ghost_loss_analysis = Column(Text, nullable=True)  # "Why This Might Be a Ghost Loss"
+    gp_bias_ignore_reasoning = Column(Text, nullable=True)  # "Why the GP should ignore previous bias"
     recommendation = Column(Text, nullable=True)
 
     # Ghostwriter Metadata

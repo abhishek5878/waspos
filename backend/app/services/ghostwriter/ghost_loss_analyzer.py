@@ -157,11 +157,11 @@ class GhostLossAnalyzer:
                 dc.content,
                 d.original_filename as document_title,
                 d.extracted_company as company_name,
-                1 - (dc.embedding <=> :query_vector::vector) as similarity
+                1 - (dc.embedding <=> :query_vector\:\:vector) as similarity
             FROM document_chunks dc
             JOIN documents d ON dc.document_id = d.id
             WHERE dc.firm_id = :firm_id
-            AND d.document_type = 'ic_memo'
+            AND d.document_type::text = 'ic_memo'
             AND (
                 LOWER(dc.content) LIKE '%pass%'
                 OR LOWER(dc.content) LIKE '%concern%'
@@ -169,8 +169,8 @@ class GhostLossAnalyzer:
                 OR LOWER(dc.content) LIKE '%not invest%'
                 OR LOWER(dc.content) LIKE '%decline%'
             )
-            AND 1 - (dc.embedding <=> :query_vector::vector) >= 0.5
-            ORDER BY dc.embedding <=> :query_vector::vector
+            AND 1 - (dc.embedding <=> :query_vector\:\:vector) >= 0.5
+            ORDER BY dc.embedding <=> :query_vector\:\:vector
             LIMIT :limit
         """)
 

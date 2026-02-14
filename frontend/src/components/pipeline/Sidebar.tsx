@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
@@ -11,23 +13,27 @@ import {
   Search,
   Zap,
   Vote,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/auth";
 
 const navigation = [
-  { name: "Pipeline", href: "/", icon: LayoutDashboard, current: true },
-  { name: "Deals", href: "/deals", icon: FileText, current: false },
-  { name: "Ghostwriter", href: "/ghostwriter", icon: Zap, current: false },
-  { name: "IC Polls", href: "/polls", icon: Vote, current: false },
-  { name: "Analytics", href: "/analytics", icon: BarChart3, current: false },
-  { name: "Team", href: "/team", icon: Users, current: false },
-  { name: "Settings", href: "/settings", icon: Settings, current: false },
+  { name: "Pipeline", href: "/", icon: LayoutDashboard },
+  { name: "Deals", href: "/deals", icon: FileText },
+  { name: "Ghostwriter", href: "/ghostwriter", icon: Zap },
+  { name: "IC Polls", href: "/polls", icon: Vote },
+  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Team", href: "/team", icon: Users },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+  const { user, logout } = useAuthStore();
 
   return (
     <div
@@ -95,42 +101,56 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-2">
-        {navigation.map((item) => (
-          <a
-            key={item.name}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              item.current
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-              collapsed && "justify-center"
-            )}
-          >
-            <item.icon className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span>{item.name}</span>}
-          </a>
-        ))}
+        {navigation.map((item) => {
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                collapsed && "justify-center"
+              )}
+            >
+              <item.icon className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && <span>{item.name}</span>}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* User */}
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border p-4 space-y-2">
         <div
           className={cn(
             "flex items-center gap-3",
             collapsed && "justify-center"
           )}
         >
-          <div className="h-8 w-8 rounded-full bg-wasp-gold/20 flex items-center justify-center">
-            <span className="text-wasp-gold text-sm font-medium">JD</span>
+          <div className="h-8 w-8 rounded-full bg-wasp-gold/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-wasp-gold text-sm font-medium">
+              {user?.full_name?.slice(0, 2).toUpperCase() || "?"}
+            </span>
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Jane Doe</p>
-              <p className="text-xs text-muted-foreground truncate">Partner</p>
+              <p className="text-sm font-medium truncate">{user?.full_name || "User"}</p>
+              <p className="text-xs text-muted-foreground truncate capitalize">{user?.role || ""}</p>
             </div>
           )}
         </div>
+        {!collapsed && (
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
+        )}
       </div>
     </div>
   );
