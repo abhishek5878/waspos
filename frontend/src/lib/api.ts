@@ -1,6 +1,5 @@
 import { Deal, InvestmentMemo, ConvictionPoll, DivergenceView } from "@/types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { getApiBase } from "./config";
 
 class ApiClient {
   private baseUrl: string;
@@ -207,4 +206,4 @@ class ApiClient {
   }
 }
 
-export const api = new ApiClient(API_BASE);
+export const api = new ApiClient(getApiBase());

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { api } from "@/lib/api";
+import { getApiBase } from "@/lib/config";
 
 export interface User {
   id: string;
@@ -38,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
       isHydrated: false,
       login: async (email: string, password: string) => {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/login`,
+          `${getApiBase()}/api/v1/auth/login`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
