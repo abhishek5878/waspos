@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/auth";
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { token, isHydrated } = useAuthStore();
+  const { token, isHydrated, isDemo } = useAuthStore();
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -30,9 +30,25 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">{children}</main>
+    <div className="flex flex-col h-screen bg-background">
+      {isDemo && (
+        <div className="bg-wasp-gold/10 border-b border-wasp-gold/30 px-4 py-2 text-center text-sm text-wasp-gold">
+          Demo mode — using mock data.{" "}
+          <a
+            href="https://github.com/abhishek5878/waspos/blob/main/DEPLOYMENT.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-wasp-gold/80"
+          >
+            Deploy your backend
+          </a>{" "}
+          to use real data.
+        </div>
+      )}
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">{children}</main>
+      </div>
     </div>
   );
 }

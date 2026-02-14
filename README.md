@@ -42,6 +42,10 @@ wasp-os/
 
 ## Quick Start
 
+### Demo Mode (No Backend)
+
+Deploy the frontend to Vercel and use **Try Demo** on the login page. You'll explore the Deal Pipeline with mock data—no backend or database required. See [DEPLOYMENT.md](./DEPLOYMENT.md) for full deployment instructions.
+
 ### Backend
 ```bash
 cd backend

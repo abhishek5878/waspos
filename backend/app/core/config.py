@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     CLERK_SECRET_KEY: Optional[str] = None
     CLERK_PUBLISHABLE_KEY: Optional[str] = None
 
+    # CORS (comma-separated origins, e.g. https://your-app.vercel.app)
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001"
+
     # File Upload
     MAX_UPLOAD_SIZE_MB: int = 50
     ALLOWED_EXTENSIONS: list[str] = [".pdf", ".docx", ".pptx"]

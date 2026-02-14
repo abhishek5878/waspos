@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { MOCK_DEALS_RESPONSE } from "@/lib/mockData";
+import { useAuthStore } from "@/store/auth";
 import { Deal, DealStage } from "@/types";
 
 export function useDeals(params?: {
@@ -9,9 +11,12 @@ export function useDeals(params?: {
   page?: number;
   per_page?: number;
 }) {
+  const isDemo = useAuthStore((s) => s.isDemo);
+
   return useQuery({
-    queryKey: ["deals", params],
-    queryFn: () => api.getDeals(params),
+    queryKey: ["deals", params, isDemo],
+    queryFn: () =>
+      isDemo ? Promise.resolve(MOCK_DEALS_RESPONSE) : api.getDeals(params),
   });
 }
 

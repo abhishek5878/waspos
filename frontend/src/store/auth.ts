@@ -10,11 +10,21 @@ export interface User {
   firm_id: string;
 }
 
+const DEMO_USER: User = {
+  id: "demo-user",
+  email: "demo@wasp.vc",
+  full_name: "Demo User",
+  role: "partner",
+  firm_id: "demo-firm",
+};
+
 interface AuthState {
   token: string | null;
   user: User | null;
+  isDemo: boolean;
   isHydrated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  demoLogin: () => void;
   logout: () => void;
   setAuth: (token: string, user: User) => void;
 }
@@ -24,6 +34,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       user: null,
+      isDemo: false,
       isHydrated: false,
       login: async (email: string, password: string) => {
         const res = await fetch(
@@ -40,11 +51,15 @@ export const useAuthStore = create<AuthState>()(
         }
         const data = await res.json();
         api.setToken(data.access_token);
-        set({ token: data.access_token, user: data.user });
+        set({ token: data.access_token, user: data.user, isDemo: false });
+      },
+      demoLogin: () => {
+        api.setToken("demo-token");
+        set({ token: "demo-token", user: DEMO_USER, isDemo: true });
       },
       logout: () => {
         api.setToken(null);
-        set({ token: null, user: null });
+        set({ token: null, user: null, isDemo: false });
       },
       setAuth: (token: string, user: User) => {
         api.setToken(token);
@@ -54,7 +69,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "wasp-auth",
-      partialize: (s) => ({ token: s.token, user: s.user }),
+      partialize: (s) => ({ token: s.token, user: s.user, isDemo: s.isDemo }),
       onRehydrateStorage: () => (state) => {
         if (state?.token) api.setToken(state.token);
         useAuthStore.setState({ isHydrated: true });

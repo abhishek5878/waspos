@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/store/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -98,9 +98,20 @@ export default function LoginPage() {
             >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                useAuthStore.getState().demoLogin();
+                router.replace("/");
+              }}
+            >
+              Try Demo
+            </Button>
           </form>
           <p className="text-xs text-muted-foreground text-center mt-4">
-            Use your firm credentials. Demo: lead@wasp.vc / testpassword123
+            Sign in with your firm credentials, or try the demo to explore without a backend.
           </p>
         </CardContent>
       </Card>
