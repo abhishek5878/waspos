@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Fallback: if zustand persist doesn't fire, unblock after 500ms
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (!useAuthStore.getState().isHydrated) {
+        useAuthStore.setState({ isHydrated: true });
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, []);
 
   if (!isHydrated || (isHydrated && token)) {
     if (token) router.replace("/");

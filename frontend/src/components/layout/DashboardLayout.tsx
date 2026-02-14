@@ -10,6 +10,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { token, isHydrated, isDemo } = useAuthStore();
 
+  // Fallback: if zustand persist doesn't fire (e.g. localStorage blocked), unblock after 500ms
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (!useAuthStore.getState().isHydrated) {
+        useAuthStore.setState({ isHydrated: true });
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     if (!isHydrated) return;
     if (!token && pathname !== "/login") {
