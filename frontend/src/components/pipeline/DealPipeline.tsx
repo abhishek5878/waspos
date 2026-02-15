@@ -1,11 +1,22 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { DealStage, Deal } from "@/types";
 import { DealCard } from "./DealCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Filter, SortAsc } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Filter, SortAsc, Check } from "lucide-react";
 import { useDeals } from "@/hooks/useDeals";
+import { useSearch } from "@/contexts/SearchContext";
+import { DealDetailModal } from "./DealDetailModal";
 
 const PIPELINE_STAGES: { key: DealStage; label: string; color: string }[] = [
   { key: "inbound", label: "Inbound", color: "bg-slate-500" },
@@ -37,12 +48,60 @@ function formatDealForCard(d: any): Deal {
   };
 }
 
+type SortBy = "updated" | "valuation" | "company";
+
 export function DealPipeline() {
-  const { data, isLoading, error } = useDeals({ per_page: 200 });
-  const deals = (data?.deals ?? []).map(formatDealForCard);
+  const { search } = useSearch();
+  const [filterStage, setFilterStage] = useState<DealStage | "all">("all");
+  const [filterSector, setFilterSector] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortBy>("updated");
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const { data, isLoading, error } = useDeals({
+    per_page: 200,
+    stage: filterStage === "all" ? undefined : filterStage,
+    sector: filterSector || undefined,
+    search: search || undefined,
+  });
+
+  const rawDeals = (data?.deals ?? []).map(formatDealForCard);
+
+  const deals = useMemo(() => {
+    let list = [...rawDeals];
+    if (filterStage !== "all") {
+      list = list.filter((d) => d.stage === filterStage);
+    }
+    if (filterSector) {
+      list = list.filter((d) => d.sector === filterSector);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (d) =>
+          d.company_name?.toLowerCase().includes(q) ||
+          d.one_liner?.toLowerCase().includes(q) ||
+          d.sector?.toLowerCase().includes(q)
+      );
+    }
+    if (sortBy === "valuation") {
+      list.sort((a, b) => (b.asking_valuation ?? 0) - (a.asking_valuation ?? 0));
+    } else if (sortBy === "company") {
+      list.sort((a, b) => (a.company_name ?? "").localeCompare(b.company_name ?? ""));
+    } else {
+      list.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    }
+    return list;
+  }, [rawDeals, search, sortBy, filterStage, filterSector]);
 
   const getDealsByStage = (stage: DealStage) =>
     deals.filter((deal) => deal.stage === stage);
+
+  const sectors = useMemo(() => {
+    const s = new Set<string>();
+    rawDeals.forEach((d) => d.sector && s.add(d.sector));
+    return Array.from(s).sort();
+  }, [rawDeals]);
 
   if (isLoading) {
     return (
@@ -71,14 +130,61 @@ export function DealPipeline() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-          <Button variant="outline" size="sm">
-            <SortAsc className="h-4 w-4 mr-2" />
-            Sort
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Stage</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setFilterStage("all")}>
+                {filterStage === "all" ? <Check className="h-4 w-4 mr-2" /> : <span className="w-4 mr-2" />}
+                All stages
+              </DropdownMenuItem>
+              {PIPELINE_STAGES.map((s) => (
+                <DropdownMenuItem key={s.key} onClick={() => setFilterStage(s.key)}>
+                  {filterStage === s.key ? <Check className="h-4 w-4 mr-2" /> : <span className="w-4 mr-2" />}
+                  {s.label}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Sector</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setFilterSector("")}>
+                {!filterSector ? <Check className="h-4 w-4 mr-2" /> : <span className="w-4 mr-2" />}
+                All sectors
+              </DropdownMenuItem>
+              {sectors.map((sec) => (
+                <DropdownMenuItem key={sec} onClick={() => setFilterSector(sec)}>
+                  {filterSector === sec ? <Check className="h-4 w-4 mr-2" /> : <span className="w-4 mr-2" />}
+                  {sec}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <SortAsc className="h-4 w-4 mr-2" />
+                Sort
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setSortBy("updated")}>
+                {sortBy === "updated" ? <Check className="h-4 w-4 mr-2" /> : <span className="w-4 mr-2" />}
+                Latest updated
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortBy("valuation")}>
+                {sortBy === "valuation" ? <Check className="h-4 w-4 mr-2" /> : <span className="w-4 mr-2" />}
+                Valuation (high → low)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortBy("company")}>
+                {sortBy === "company" ? <Check className="h-4 w-4 mr-2" /> : <span className="w-4 mr-2" />}
+                Company name A–Z
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -108,7 +214,14 @@ export function DealPipeline() {
                 {/* Cards */}
                 <div className="flex-1 overflow-y-auto p-3 space-y-3">
                   {stageDeals.map((deal) => (
-                    <DealCard key={deal.id} deal={deal} />
+                    <DealCard
+                      key={deal.id}
+                      deal={deal}
+                      onClick={() => {
+                        setSelectedDeal(deal);
+                        setDetailOpen(true);
+                      }}
+                    />
                   ))}
                   {stageDeals.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground text-sm">
@@ -121,6 +234,12 @@ export function DealPipeline() {
           })}
         </div>
       </div>
+
+      <DealDetailModal
+        deal={selectedDeal}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   );
 }

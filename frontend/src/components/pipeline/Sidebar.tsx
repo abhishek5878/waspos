@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSearch } from "@/contexts/SearchContext";
+import { NewDealDialog } from "./NewDealDialog";
 import {
   LayoutDashboard,
   FileText,
@@ -32,8 +34,10 @@ const navigation = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [newDealOpen, setNewDealOpen] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
+  const { search, setSearch } = useSearch();
 
   return (
     <div
@@ -83,6 +87,8 @@ export function Sidebar() {
             <Input
               placeholder="Search deals..."
               className="pl-9 bg-secondary border-0"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
@@ -93,10 +99,12 @@ export function Sidebar() {
         <Button
           variant="wasp"
           className={cn("w-full", collapsed && "px-2")}
+          onClick={() => setNewDealOpen(true)}
         >
           <PlusCircle className="h-4 w-4" />
           {!collapsed && <span className="ml-2">New Deal</span>}
         </Button>
+        <NewDealDialog open={newDealOpen} onOpenChange={setNewDealOpen} />
       </div>
 
       {/* Navigation */}
